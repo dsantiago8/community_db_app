@@ -1,6 +1,17 @@
+using community_db.Services; // If you created a ListingService
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Load environment variables (like Railway env vars)
+builder.Configuration.AddEnvironmentVariables();
+
+//  Add ADO.NET service (if using something like ListingService)
+builder.Services.AddTransient<ListingService>();
+
+// Add Razor Pages
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
@@ -9,7 +20,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

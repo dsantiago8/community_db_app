@@ -1,7 +1,7 @@
-CREATE DATABASE CommunityDB;
+CREATE DATABASE community_db;
 GO
 
-USE CommunityDB;
+USE community_db;
 GO
 
 CREATE TABLE Listings (

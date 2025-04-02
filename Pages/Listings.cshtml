@@ -1,0 +1,29 @@
+@page
+@model ListingsModel
+@{
+    ViewData["Title"] = "Community Listings";
+}
+
+<h1>Community Listings</h1>
+
+@* Listing Form *@
+<form method="post">
+    <input asp-for="NewListing.Title" placeholder="Title" required />
+    <input asp-for="NewListing.Category" placeholder="Category" required />
+    <input asp-for="NewListing.Location" placeholder="Location" required />
+    <textarea asp-for="NewListing.Description" placeholder="Description" required></textarea>
+    <button type="submit">Add Listing</button>
+</form>
+
+<hr />
+
+@* Show Listings *@
+@foreach (var item in Model.Listings)
+{
+    <div>
+        <h3>@item.Title (@item.Category)</h3>
+        <p>@item.Description</p>
+        <p><em>@item.Location</em> • @item.DatePosted.ToShortDateString()</p>
+    </div>
+    <hr />
+}
