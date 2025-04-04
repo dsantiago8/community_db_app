@@ -1,5 +1,8 @@
 @page
+@using community_db.Pages
 @model ListingsModel
+
+
 @{
     ViewData["Title"] = "Community Listings";
 }
@@ -9,11 +12,25 @@
 @* Listing Form *@
 <form method="post">
     <input asp-for="NewListing.Title" placeholder="Title" required />
-    <input asp-for="NewListing.Category" placeholder="Category" required />
-    <input asp-for="NewListing.Location" placeholder="Location" required />
+
+    <select asp-for="NewListing.CategoryId">
+        @foreach (var category in Model.Categories)
+        {
+            <option value="@category.CategoryId">@category.Name</option>
+        }
+    </select>
+
+    <select asp-for="NewListing.LocationId">
+        @foreach (var location in Model.Locations)
+        {
+            <option value="@location.LocationId">@location.Name</option>
+        }
+    </select>
+
     <textarea asp-for="NewListing.Description" placeholder="Description" required></textarea>
     <button type="submit">Add Listing</button>
 </form>
+
 
 <hr />
 

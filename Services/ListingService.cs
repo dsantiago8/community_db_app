@@ -26,12 +26,14 @@ namespace community_db.Services
             {
                 listings.Add(new Listing
                 {
-                    Id = reader.GetInt32(0),
+                    ListingId = reader.GetInt32(0),
                     Title = reader.GetString(1),
                     Description = reader.GetString(2),
-                    Category = reader.GetString(3),
-                    Location = reader.GetString(4),
-                    DatePosted = reader.GetDateTime(5)
+                    CategoryId = reader.GetInt32(3),
+                    LocationId = reader.GetInt32(4),
+                    CreatorId = reader.GetInt32(5),
+                    DatePosted = reader.GetDateTime(6)
+
                 });
             }
 
@@ -44,16 +46,57 @@ namespace community_db.Services
             conn.Open();
 
             var cmd = new NpgsqlCommand(@"
-                INSERT INTO Listings (Title, Description, Category, Location)
-                VALUES (@Title, @Description, @Category, @Location)
+                INSERT INTO Listings (Title, Description, CategoryId, LocationId, CreatorId)
+                VALUES (@Title, @Description, @CategoryId, @LocationId, @CreatorId)
             ", conn);
 
             cmd.Parameters.AddWithValue("@Title", listing.Title);
             cmd.Parameters.AddWithValue("@Description", listing.Description);
-            cmd.Parameters.AddWithValue("@Category", listing.Category);
-            cmd.Parameters.AddWithValue("@Location", listing.Location);
+            cmd.Parameters.AddWithValue("@CategoryId", listing.CategoryId);
+            cmd.Parameters.AddWithValue("@LocationId", listing.LocationId);
+            cmd.Parameters.AddWithValue("@CreatorId", listing.CreatorId);
 
             cmd.ExecuteNonQuery();
         }
+
+        public List<Category> GetAllCategories()
+        {
+            var categories = new List<Category>();
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("SELECT * FROM Categories ORDER BY Name", conn);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                categories.Add(new Category
+                {
+                    CategoryId = reader.GetInt32(0),
+                    Name = reader.GetString(1)
+                });
+            }
+            return categories;
+        }
+
+        public List<Location> GetAllLocations()
+        {
+            var locations = new List<Location>();
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("SELECT * FROM Locations ORDER BY Name", conn);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                locations.Add(new Location
+                {
+                    LocationId = reader.GetInt32(0),
+                    Name = reader.GetString(1)
+                });
+            }
+            return locations;
+        }
+
+
     }
 }
