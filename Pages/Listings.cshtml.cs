@@ -38,13 +38,14 @@ public class ListingsModel : PageModel
             return Page();
         }
 
-        // Grab current user from session
         var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return RedirectToPage("/Signup"); // or show error
+        if (userId == null) return RedirectToPage("/Login");
 
-        NewListing.CreatorId = userId.Value;
+        NewListing.CreatorId = userId.Value; // Insert user from session
+
         _listingService.AddListing(NewListing);
         return RedirectToPage();
     }
+
 
 }

@@ -28,8 +28,10 @@
     </select>
 
     <textarea asp-for="NewListing.Description" placeholder="Description" required></textarea>
+
     <button type="submit">Add Listing</button>
 </form>
+
 
 
 <hr />
@@ -38,9 +40,11 @@
 @foreach (var item in Model.Listings)
 {
     <div>
-        <h3>@item.Title (@item.Category)</h3>
+        <h3>@item.Title (@item.CategoryName)</h3>
         <p>@item.Description</p>
-        <p><em>@item.Location</em> • @item.DatePosted.ToShortDateString()</p>
+        <p><em>@item.LocationName</em> • @item.DatePosted.ToShortDateString()</p>
+        <p><strong>Posted by:</strong> @item.CreatorEmail</p>
+
     </div>
     <hr />
 }

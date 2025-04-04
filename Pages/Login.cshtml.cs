@@ -1,53 +1,50 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Npgsql;
-using System.Data;
+using community_db.Models;
+using community_db.Services;
 
 namespace community_db.Pages
 {
     public class LoginModel : PageModel
     {
-        private readonly IConfiguration _config;
-        private readonly string _connectionString;
+        private readonly UserService _userService;
 
-        public LoginModel(IConfiguration config)
+        public LoginModel(UserService userService)
         {
-            _config = config;
-            _connectionString = _config.GetConnectionString("DefaultConnection");
+            _userService = userService;
         }
 
         [BindProperty]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
+
+        public void OnGet()
+        {
+            // No-op on GET for now
+        }
 
         public IActionResult OnPost()
         {
-            if (string.IsNullOrWhiteSpace(Email))
+            if (string.IsNullOrEmpty(Email))
             {
                 ErrorMessage = "Email is required.";
                 return Page();
             }
 
-            bool userExists = false;
-
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM users WHERE email = @Email", conn);
-            cmd.Parameters.AddWithValue("Email", Email);
-
-            var count = (long)cmd.ExecuteScalar();
-            userExists = count > 0;
-
-            if (!userExists)
+            // Define the 'user' variable inside this method
+            var user = _userService.GetUserByEmail(Email);
+            if (user == null)
             {
-                ErrorMessage = "No account found with that email.";
+                ErrorMessage = "No user found with that email.";
                 return Page();
             }
 
-            // Login successful, set session
-            HttpContext.Session.SetString("UserEmail", Email);
+            // store user data in session
+            HttpContext.Session.SetInt32("UserId", user.UserId);
+            HttpContext.Session.SetString("UserEmail", user.Email);
+            HttpContext.Session.SetString("UserName", user.Name ?? "");
+
             return RedirectToPage("/Listings");
         }
     }

@@ -19,23 +19,33 @@ namespace community_db.Services
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
-            var cmd = new NpgsqlCommand("SELECT * FROM Listings ORDER BY DatePosted DESC", conn);
+            var cmd = new NpgsqlCommand(@"
+                SELECT l.ListingId, l.Title, l.Description, l.DatePosted,
+                    c.Name AS CategoryName,
+                    loc.Name AS LocationName,
+                    u.Email AS CreatorEmail
+                FROM Listings l
+                JOIN Categories c ON l.CategoryId = c.CategoryId
+                JOIN Locations loc ON l.LocationId = loc.LocationId
+                JOIN Users u ON l.CreatorId = u.UserId
+                ORDER BY l.DatePosted DESC
+            ", conn);
             var reader = cmd.ExecuteReader();
 
-            while (reader.Read())
+           while (reader.Read())
             {
                 listings.Add(new Listing
                 {
                     ListingId = reader.GetInt32(0),
                     Title = reader.GetString(1),
                     Description = reader.GetString(2),
-                    CategoryId = reader.GetInt32(3),
-                    LocationId = reader.GetInt32(4),
-                    CreatorId = reader.GetInt32(5),
-                    DatePosted = reader.GetDateTime(6)
-
+                    DatePosted = reader.GetDateTime(3),
+                    CategoryName = reader.GetString(4),
+                    LocationName = reader.GetString(5),
+                    CreatorEmail = reader.GetString(6)
                 });
             }
+
 
             return listings;
         }
@@ -58,6 +68,7 @@ namespace community_db.Services
 
             cmd.ExecuteNonQuery();
         }
+
 
         public List<Category> GetAllCategories()
         {

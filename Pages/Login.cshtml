@@ -3,12 +3,15 @@
 
 <h2>Log In</h2>
 
-@if (!string.IsNullOrEmpty(Model.ErrorMessage))
-{
-    <p style="color: red">@Model.ErrorMessage</p>
-}
-
 <form method="post">
     <input asp-for="Email" placeholder="Email" required />
-    <button type="submit">Log In</button>
+    <button type="submit">Login</button>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <p style="color:red">@Model.ErrorMessage</p>
+    }
 </form>
+
+
+

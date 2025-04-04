@@ -10,12 +10,21 @@ builder.Configuration.AddEnvironmentVariables();
 
 //  Add ADO.NET service (if using something like ListingService)
 builder.Services.AddTransient<ListingService>();
+builder.Services.AddScoped<UserService>();
 
 // Add Razor Pages
 builder.Services.AddRazorPages();
 
+// Session + HttpContextAccessor (needed for navbar user display)
+builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 
 var app = builder.Build();
 
