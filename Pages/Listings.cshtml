@@ -56,7 +56,7 @@
             <option value="">All Locations</option>
             @foreach (var location in Model.Locations)
             {
-                <option value="@location.LocationId" selected="@(Request.Query["LocationId"] == location.LocationId.ToString() ? "selected" : null)">
+                <option value="@location.LocationId" selected="@(Request.Query["locationId"] == location.LocationId.ToString() ? "selected" : null)">
                     @location.Name
                 </option>
 
@@ -77,9 +77,30 @@
     <div>
         <h3>@item.Title (@item.CategoryName)</h3>
         <p>@item.Description</p>
-        <p><em>@item.LocationName</em> • @item.DatePosted.ToShortDateString()</p>
+        <p><em>@item.LocationName</em> • Date Posted: @item.DatePosted.ToShortDateString()</p>
         <p><strong>Posted by:</strong> @item.CreatorEmail</p>
 
+        @if (HttpContext.Session.GetInt32("UserId") != null)
+        {
+            <form method="post" asp-page-handler="Join" asp-route-id="@item.ListingId">
+                <button class="btn btn-sm btn-success">Join</button>
+            </form>
+        }
+
+        @if (item.Signups?.Count > 0)
+            {
+                <p><strong>@item.Signups.Count user(s) joined:</strong></p>
+                <ul>
+                    @foreach (var s in item.Signups)
+                    {
+                        <li>@s.UserEmail</li>
+                    }
+                </ul>
+            }
+
     </div>
+   
+
+
     <hr />
 }

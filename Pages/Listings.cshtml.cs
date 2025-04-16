@@ -26,6 +26,11 @@ public class ListingsModel : PageModel
         Categories = _listingService.GetAllCategories();
         Locations = _listingService.GetAllLocations();
         Listings = _listingService.SearchListings(userEmail, categoryId, locationId, title);
+
+        foreach (var listing in Listings)
+        {
+            listing.Signups = _listingService.GetSignupsForListing(listing.ListingId);
+        }
     }
 
 
@@ -45,6 +50,15 @@ public class ListingsModel : PageModel
 
         _listingService.AddListing(NewListing);
         return RedirectToPage();
+    }
+
+    public IActionResult OnPostJoin(int id)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToPage("/Login");
+
+        _listingService.JoinListing(id, userId.Value);
+        return RedirectToPage(); // refresh page
     }
 
 

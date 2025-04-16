@@ -10,10 +10,13 @@ namespace community_db.Models
         public int CreatorId { get; set; }
         public DateTime DatePosted { get; set; }
 
-        // Optional navigation properties
+        // Optional navigation propertiesSS
         public Category? Category { get; set; }
         public Location? Location { get; set; }
         public User? Creator { get; set; }
+
+        public List<ListingSignup>? Signups { get; set; }
+
 
         // Display fields from JOINs
         public string? CategoryName { get; set; }  // for displaying from JOIN

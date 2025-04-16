@@ -48,7 +48,7 @@ namespace community_db.Services
             {
                 NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Integer
             });
-            
+
             cmd.Parameters.Add(new NpgsqlParameter("@Title", string.IsNullOrWhiteSpace(title) ? DBNull.Value : $"%{title}%")
             {
                 NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text
@@ -132,6 +132,53 @@ namespace community_db.Services
                 });
             }
             return locations;
+        }
+
+        public void JoinListing(int listingId, int userId)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                INSERT INTO ListingSignups (ListingId, UserId)
+                VALUES (@ListingId, @UserId)
+                ON CONFLICT DO NOTHING;
+            ", conn);
+
+            cmd.Parameters.AddWithValue("@ListingId", listingId);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.ExecuteNonQuery();
+        }
+
+        public List<ListingSignup> GetSignupsForListing(int listingId)
+        {
+            var signups = new List<ListingSignup>();
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                SELECT s.SignupId, s.UserId, u.Email, s.SignupDate
+                FROM ListingSignups s
+                JOIN Users u ON s.UserId = u.UserId
+                WHERE s.ListingId = @ListingId
+            ", conn);
+
+            cmd.Parameters.AddWithValue("@ListingId", listingId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                signups.Add(new ListingSignup
+                {
+                    SignupId = reader.GetInt32(0),
+                    UserId = reader.GetInt32(1),
+                    UserEmail = reader.GetString(2),
+                    SignupDate = reader.GetDateTime(3)
+                });
+            }
+
+            return signups;
         }
 
 
