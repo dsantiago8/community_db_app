@@ -1,4 +1,4 @@
-using community_db.Services; // If you created a ListingService
+using community_db.Services; 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

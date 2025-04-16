@@ -21,11 +21,11 @@ public class ListingsModel : PageModel
     [BindProperty]
     public Listing NewListing { get; set; }
 
-    public void OnGet()
+    public void OnGet(string? userEmail, int? categoryId, int? locationId, string? title)
     {
-        Listings = _listingService.GetAllListings();
         Categories = _listingService.GetAllCategories();
         Locations = _listingService.GetAllLocations();
+        Listings = _listingService.SearchListings(userEmail, categoryId, locationId, title);
     }
 
 

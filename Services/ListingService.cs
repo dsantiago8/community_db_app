@@ -12,14 +12,14 @@ namespace community_db.Services
             _connectionString = config.GetConnectionString("DefaultConnection");
         }
 
-        public List<Listing> GetAllListings()
+        public List<Listing> SearchListings(string? userEmail, int? categoryId, int? locationId,string? title)
         {
             var listings = new List<Listing>();
 
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
-            var cmd = new NpgsqlCommand(@"
+            var query = @"
                 SELECT l.ListingId, l.Title, l.Description, l.DatePosted,
                     c.Name AS CategoryName,
                     loc.Name AS LocationName,
@@ -28,11 +28,37 @@ namespace community_db.Services
                 JOIN Categories c ON l.CategoryId = c.CategoryId
                 JOIN Locations loc ON l.LocationId = loc.LocationId
                 JOIN Users u ON l.CreatorId = u.UserId
-                ORDER BY l.DatePosted DESC
-            ", conn);
+                WHERE (u.Email ILIKE @UserEmail OR @UserEmail IS NULL)
+                AND (@CategoryId IS NULL OR l.CategoryId = @CategoryId)
+                AND (@LocationId IS NULL OR l.LocationId = @LocationId)
+                AND (@Title IS NULL OR l.Title ILIKE @Title)
+                ORDER BY l.DatePosted DESC";
+
+            var cmd = new NpgsqlCommand(query, conn);
+            cmd.Parameters.Add(new NpgsqlParameter("@UserEmail", string.IsNullOrWhiteSpace(userEmail) ? DBNull.Value : $"%{userEmail}%")
+            {
+                NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text
+            });
+            cmd.Parameters.Add(new NpgsqlParameter("@CategoryId", categoryId.HasValue ? categoryId.Value : DBNull.Value)
+            {
+                NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Integer
+            });
+
+            cmd.Parameters.Add(new NpgsqlParameter("@LocationId", locationId.HasValue ? locationId.Value : DBNull.Value)
+            {
+                NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Integer
+            });
+            
+            cmd.Parameters.Add(new NpgsqlParameter("@Title", string.IsNullOrWhiteSpace(title) ? DBNull.Value : $"%{title}%")
+            {
+                NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text
+            });
+
+
+
             var reader = cmd.ExecuteReader();
 
-           while (reader.Read())
+            while (reader.Read())
             {
                 listings.Add(new Listing
                 {
@@ -46,9 +72,9 @@ namespace community_db.Services
                 });
             }
 
-
             return listings;
         }
+
 
         public void AddListing(Listing listing)
         {
