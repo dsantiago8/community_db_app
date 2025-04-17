@@ -34,3 +34,4 @@ C:\Users\diego\Downloads\community_db\obj\Debug\net8.0\refint\community_db.dll
 C:\Users\diego\Downloads\community_db\obj\Debug\net8.0\community_db.pdb
 C:\Users\diego\Downloads\community_db\obj\Debug\net8.0\community_db.genruntimeconfig.cache
 C:\Users\diego\Downloads\community_db\obj\Debug\net8.0\ref\community_db.dll
+C:\Users\diego\Downloads\community_db\bin\Debug\net8.0\Bogus.dll

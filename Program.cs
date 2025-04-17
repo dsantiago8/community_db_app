@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+// // Add this at the top:
+// using community_db.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Load environment variables (like Railway env vars)
@@ -45,5 +48,7 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapRazorPages();
-
+// Database Seeder
+// var seeder = new DataSeeder(builder.Configuration);
+// seeder.SeedListings(100); // You can change the count here
 app.Run();
