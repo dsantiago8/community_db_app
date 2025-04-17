@@ -3,8 +3,15 @@ namespace community_db.Models
     public class Listing
     {
         public int ListingId { get; set; }
+
+        [Required]
+        [MaxLength(100)]
         public string Title { get; set; } = null!;
+
+        [Required]
+        [MaxLength(1000)]
         public string Description { get; set; } = null!;
+        
         public int CategoryId { get; set; }
         public int LocationId { get; set; }
         public int CreatorId { get; set; }

@@ -18,5 +18,10 @@ html {
 }
 
 body {
+  /* background-image: url('/images/eagle_rock.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center center; */
   margin-bottom: 60px;
 }

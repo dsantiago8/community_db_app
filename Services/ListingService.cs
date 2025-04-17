@@ -150,6 +150,24 @@ namespace community_db.Services
             cmd.ExecuteNonQuery();
         }
 
+        public void UnjoinListing(int listingId, int userId)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                DELETE FROM ListingSignups
+                WHERE ListingId = @ListingId AND UserId = @UserId
+            ", conn);
+
+            cmd.Parameters.AddWithValue("@ListingId", listingId);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+
+            cmd.ExecuteNonQuery();
+        }
+
+
+
         public List<ListingSignup> GetSignupsForListing(int listingId)
         {
             var signups = new List<ListingSignup>();

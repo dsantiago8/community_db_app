@@ -33,7 +33,7 @@ public class ListingsModel : PageModel
         }
     }
 
-
+    [ValidateAntiForgeryToken]
     public IActionResult OnPost()
     {
         if (!ModelState.IsValid)
@@ -52,6 +52,7 @@ public class ListingsModel : PageModel
         return RedirectToPage();
     }
 
+    [ValidateAntiForgeryToken]
     public IActionResult OnPostJoin(int id)
     {
         var userId = HttpContext.Session.GetInt32("UserId");
@@ -61,5 +62,14 @@ public class ListingsModel : PageModel
         return RedirectToPage(); // refresh page
     }
 
+    [ValidateAntiForgeryToken]
+    public IActionResult OnPostLeave(int id)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToPage("/Login");
+
+        _listingService.UnjoinListing(id, userId.Value);
+        return RedirectToPage(); // refresh
+    }
 
 }

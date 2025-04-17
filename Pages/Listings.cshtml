@@ -11,7 +11,9 @@
 
 @* Listing Form *@
 <form method="post">
-    <input asp-for="NewListing.Title" placeholder="Title" required />
+    @Html.AntiForgeryToken()
+    
+    <input asp-for="NewListing.Title" placeholder="Title" required maxlength="100" />
 
     <select asp-for="NewListing.CategoryId">
         @foreach (var category in Model.Categories)
@@ -27,7 +29,7 @@
         }
     </select>
 
-    <textarea asp-for="NewListing.Description" placeholder="Description" required></textarea>
+    <textarea asp-for="NewListing.Description" placeholder="Description" required maxlength="1000"></textarea>
 
     <button type="submit">Add Listing</button>
 </form>
@@ -80,10 +82,15 @@
         <p><em>@item.LocationName</em> • Date Posted: @item.DatePosted.ToShortDateString()</p>
         <p><strong>Posted by:</strong> @item.CreatorEmail</p>
 
-        @if (HttpContext.Session.GetInt32("UserId") != null)
+        @if (HttpContext.Session.GetInt32("UserId") is int userId)
         {
-            <form method="post" asp-page-handler="Join" asp-route-id="@item.ListingId">
-                <button class="btn btn-sm btn-success">Join</button>
+            var alreadyJoined = item.Signups?.Any(s => s.UserId == userId) == true;
+
+            <form method="post" asp-page-handler="@(alreadyJoined ? "Leave" : "Join")" asp-route-id="@item.ListingId">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-sm @(alreadyJoined ? "btn-danger" : "btn-success")">
+                    @(alreadyJoined ? "Leave" : "Join")
+                </button>
             </form>
         }
 
@@ -104,3 +111,24 @@
 
     <hr />
 }
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        document.querySelector('form[method="get"]').addEventListener('submit', function (e) {
+            const title = document.querySelector('input[name="title"]').value.trim();
+            const email = document.querySelector('input[name="userEmail"]').value.trim();
+            const category = document.querySelector('select[name="categoryId"]').value;
+            const location = document.querySelector('select[name="locationId"]').value;
+
+            const isAllEmpty = !title && !email && !category && !location;
+
+            if (isAllEmpty) {
+                e.preventDefault(); // Stop form from submitting
+                alert("Please enter at least one filter before searching.");
+            }
+        });
+    </script>
+}
+
