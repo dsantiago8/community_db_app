@@ -18,6 +18,8 @@ namespace community_db.Models
         public int LocationId { get; set; }
         public int CreatorId { get; set; }
         public DateTime DatePosted { get; set; }
+        public DateTime? EventDate { get; set; }
+
 
         // Optional navigation propertiesSS
         public Category? Category { get; set; }

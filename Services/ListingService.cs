@@ -82,8 +82,8 @@ namespace community_db.Services
             conn.Open();
 
             var cmd = new NpgsqlCommand(@"
-                INSERT INTO Listings (Title, Description, CategoryId, LocationId, CreatorId)
-                VALUES (@Title, @Description, @CategoryId, @LocationId, @CreatorId)
+                INSERT INTO Listings (Title, Description, CategoryId, LocationId, CreatorId, EventDate)
+                VALUES (@Title, @Description, @CategoryId, @LocationId, @CreatorId, @EventDate)
             ", conn);
 
             cmd.Parameters.AddWithValue("@Title", listing.Title);
@@ -91,6 +91,12 @@ namespace community_db.Services
             cmd.Parameters.AddWithValue("@CategoryId", listing.CategoryId);
             cmd.Parameters.AddWithValue("@LocationId", listing.LocationId);
             cmd.Parameters.AddWithValue("@CreatorId", listing.CreatorId);
+            
+            cmd.Parameters.Add(new NpgsqlParameter("@EventDate", listing.EventDate ?? (object)DBNull.Value)
+            {
+                NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Timestamp
+            });
+
 
             cmd.ExecuteNonQuery();
         }

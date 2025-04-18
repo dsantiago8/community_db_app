@@ -30,6 +30,8 @@
     </select>
 
     <textarea asp-for="NewListing.Description" placeholder="Description" required maxlength="1000"></textarea>
+    <input asp-for="NewListing.EventDate" type="date" class="form-control"/>
+
 
     <button type="submit">Add Listing</button>
 </form>
@@ -81,6 +83,8 @@
         <p>@item.Description</p>
         <p><em>@item.LocationName</em> • Date Posted: @item.DatePosted.ToShortDateString()</p>
         <p><strong>Posted by:</strong> @item.CreatorEmail</p>
+        <p><strong>Event Date:</strong> @(item.EventDate.HasValue ? item.EventDate.Value.ToShortDateString() : "N/A")</p>
+
 
         @if (HttpContext.Session.GetInt32("UserId") is int userId)
         {
