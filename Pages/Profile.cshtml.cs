@@ -77,5 +77,11 @@ namespace community_db.Pages
             SuccessMessage = "Profile updated successfully.";
             return Page();
         }
+        public IActionResult OnPostLogout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToPage("/Login");
+        }
+
     }
 }

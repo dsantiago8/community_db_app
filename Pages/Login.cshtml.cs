@@ -54,6 +54,10 @@ namespace community_db.Pages
 
             // Password verified - create session
             HttpContext.Session.SetInt32("UserId", userId);
+            HttpContext.Session.SetString("UserEmail", Email);
+
+
+            TempData["WelcomeMessage"] = $"Welcome, {Email}!";
             return RedirectToPage("/Listings");
         }
     }
