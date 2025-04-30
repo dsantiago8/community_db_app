@@ -12,7 +12,7 @@ namespace community_db.Services
             _connectionString = config.GetConnectionString("DefaultConnection");
         }
 
-        public List<Listing> SearchListings(string? userEmail, int? categoryId, int? locationId,string? title)
+        public List<Listing> SearchListings(string? userEmail, int? categoryId, int? locationId,string? title, DateTime? eventDate)
         {
             var listings = new List<Listing>();
 
@@ -20,7 +20,7 @@ namespace community_db.Services
             conn.Open();
 
             var query = @"
-                SELECT l.ListingId, l.Title, l.Description, l.DatePosted,
+                SELECT l.ListingId, l.Title, l.Description, l.DatePosted, l.EventDate,
                     c.Name AS CategoryName,
                     loc.Name AS LocationName,
                     u.Email AS CreatorEmail
@@ -32,6 +32,7 @@ namespace community_db.Services
                 AND (@CategoryId IS NULL OR l.CategoryId = @CategoryId)
                 AND (@LocationId IS NULL OR l.LocationId = @LocationId)
                 AND (@Title IS NULL OR l.Title ILIKE @Title)
+                AND (@EventDate IS NULL OR l.EventDate::date = @EventDate::date)
                 ORDER BY l.DatePosted DESC";
 
             var cmd = new NpgsqlCommand(query, conn);
@@ -54,6 +55,12 @@ namespace community_db.Services
                 NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text
             });
 
+            cmd.Parameters.Add(new NpgsqlParameter("@EventDate", eventDate.HasValue ? eventDate.Value : DBNull.Value)
+            {
+                NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Date
+            });
+
+
 
 
             var reader = cmd.ExecuteReader();
@@ -66,9 +73,10 @@ namespace community_db.Services
                     Title = reader.GetString(1),
                     Description = reader.GetString(2),
                     DatePosted = reader.GetDateTime(3),
-                    CategoryName = reader.GetString(4),
-                    LocationName = reader.GetString(5),
-                    CreatorEmail = reader.GetString(6)
+                    EventDate = reader.IsDBNull(4) ? null : reader.GetDateTime(4),
+                    CategoryName = reader.GetString(5),
+                    LocationName = reader.GetString(6),
+                    CreatorEmail = reader.GetString(7)
                 });
             }
 
@@ -205,6 +213,103 @@ namespace community_db.Services
             return signups;
         }
 
+        public List<Listing> GetListingsByUserId(int userId)
+        {
+            var listings = new List<Listing>();
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                SELECT l.ListingId, l.Title, l.Description, l.DatePosted, l.EventDate,
+                    l.CategoryId, l.LocationId,
+                    c.Name AS CategoryName,
+                    loc.Name AS LocationName,
+                    u.Email AS CreatorEmail
+                FROM Listings l
+                JOIN Categories c ON l.CategoryId = c.CategoryId
+                JOIN Locations loc ON l.LocationId = loc.LocationId
+                JOIN Users u ON l.CreatorId = u.UserId
+                WHERE l.CreatorId = @UserId
+                ORDER BY l.DatePosted DESC
+            ", conn);
+
+            cmd.Parameters.AddWithValue("@UserId", userId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                listings.Add(new Listing
+                {
+                    ListingId = reader.GetInt32(0),
+                    Title = reader.GetString(1),
+                    Description = reader.GetString(2),
+                    DatePosted = reader.GetDateTime(3),
+                    EventDate = reader.IsDBNull(4) ? null : reader.GetDateTime(4),
+                    CategoryId = reader.GetInt32(5), 
+                    LocationId = reader.GetInt32(6), 
+                    CategoryName = reader.GetString(7),
+                    LocationName = reader.GetString(8),
+                    CreatorEmail = reader.GetString(9)
+                });
+            }
+
+            return listings;
+        }
+
+        public Listing GetListingById(int listingId)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                SELECT ListingId, Title, Description, CategoryId, LocationId, CreatorId, DatePosted, EventDate
+                FROM Listings
+                WHERE ListingId = @ListingId
+            ", conn);
+            cmd.Parameters.AddWithValue("@ListingId", listingId);
+
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return new Listing
+                {
+                    ListingId = reader.GetInt32(0),
+                    Title = reader.GetString(1),
+                    Description = reader.GetString(2),
+                    CategoryId = reader.GetInt32(3),
+                    LocationId = reader.GetInt32(4),
+                    CreatorId = reader.GetInt32(5),
+                    DatePosted = reader.GetDateTime(6),
+                    EventDate = reader.IsDBNull(7) ? null : reader.GetDateTime(7)
+                };
+            }
+
+            return null;
+        }
+
+        public void UpdateListing(Listing listing)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                UPDATE Listings
+                SET Title = @Title,
+                    Description = @Description,
+                    CategoryId = @CategoryId,
+                    LocationId = @LocationId,
+                    EventDate = @EventDate
+                WHERE ListingId = @ListingId", conn);
+
+            cmd.Parameters.AddWithValue("@Title", listing.Title);
+            cmd.Parameters.AddWithValue("@Description", listing.Description);
+            cmd.Parameters.AddWithValue("@CategoryId", listing.CategoryId);
+            cmd.Parameters.AddWithValue("@LocationId", listing.LocationId);
+            cmd.Parameters.AddWithValue("@ListingId", listing.ListingId);
+            cmd.Parameters.AddWithValue("@EventDate", listing.EventDate ?? (object)DBNull.Value);
+
+            cmd.ExecuteNonQuery();
+        }
 
     }
 }

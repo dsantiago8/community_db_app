@@ -1,50 +1,59 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using community_db.Models;
-using community_db.Services;
+using Npgsql;
+using BCrypt.Net;
 
 namespace community_db.Pages
 {
     public class LoginModel : PageModel
     {
-        private readonly UserService _userService;
-
-        public LoginModel(UserService userService)
-        {
-            _userService = userService;
-        }
-
-        [BindProperty]
-        public string Email { get; set; } = string.Empty;
-
+        private readonly IConfiguration _config;
         public string? ErrorMessage { get; set; }
+        [BindProperty]
+        public string Email { get; set; } = "";
+        [BindProperty]
+        public string Password { get; set; } = "";
 
-        public void OnGet()
+        public LoginModel(IConfiguration config)
         {
-            // No-op on GET for now
+            _config = config;
         }
 
         public IActionResult OnPost()
         {
-            if (string.IsNullOrEmpty(Email))
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
-                ErrorMessage = "Email is required.";
+                ErrorMessage = "Email and Password are required.";
                 return Page();
             }
 
-            // Define the 'user' variable inside this method
-            var user = _userService.GetUserByEmail(Email);
-            if (user == null)
+            using var conn = new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("SELECT UserId, PasswordHash FROM Users WHERE Email = @Email", conn);
+            cmd.Parameters.AddWithValue("Email", Email);
+
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read())
             {
                 ErrorMessage = "No user found with that email.";
                 return Page();
             }
 
-            // store user data in session
-            HttpContext.Session.SetInt32("UserId", user.UserId);
-            HttpContext.Session.SetString("UserEmail", user.Email);
-            HttpContext.Session.SetString("UserName", user.Name ?? "");
+            int userId = reader.GetInt32(0);
+            string storedHash = reader.GetString(1);
 
+            // Now verify the password
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(Password, storedHash);
+
+            if (!isPasswordValid)
+            {
+                ErrorMessage = "Incorrect password.";
+                return Page();
+            }
+
+            // Password verified - create session
+            HttpContext.Session.SetInt32("UserId", userId);
             return RedirectToPage("/Listings");
         }
     }

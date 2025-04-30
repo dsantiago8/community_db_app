@@ -66,6 +66,8 @@
 
             }
         </select>
+        <input type="date" name="eventDate" class="form-control" value="@Request.Query["eventDate"]" />
+
 
         <button type="submit" class="btn btn-primary">Search</button>
     </div>
@@ -125,8 +127,9 @@
             const email = document.querySelector('input[name="userEmail"]').value.trim();
             const category = document.querySelector('select[name="categoryId"]').value;
             const location = document.querySelector('select[name="locationId"]').value;
+            const eventDate = document.querySelector("input[name='eventDate']").value;
 
-            const isAllEmpty = !title && !email && !category && !location;
+            const isAllEmpty = !title && !email && !category && !location && !eventDate;
 
             if (isAllEmpty) {
                 e.preventDefault(); // Stop form from submitting

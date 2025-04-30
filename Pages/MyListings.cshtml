@@ -1,0 +1,102 @@
+@page
+@model MyListingsModel
+@{
+    ViewData["Title"] = "My Listings";
+}
+
+<h1>My Listings</h1>
+
+@foreach (var listing in Model.MyListings)
+{
+    <div class="card mb-3 p-3">
+        <h3>@listing.Title (@listing.CategoryName)</h3>
+        <p>@listing.Description</p>
+        <p><em>@listing.LocationName</em> • Posted: @listing.DatePosted.ToShortDateString()</p>
+        <p><strong>Event Date:</strong> @(listing.EventDate.HasValue ? listing.EventDate.Value.ToShortDateString() : "N/A")</p>
+
+        <button type="button" class="btn btn-warning"
+                onclick="openEditModal(@listing.ListingId, '@listing.Title', `@listing.Description`, '@listing.CategoryId', '@listing.LocationId', '@(listing.EventDate?.ToString("yyyy-MM-dd") ?? "")')" data-bs-toggle="modal" data-bs-target="#editModal">
+            Edit
+        </button>
+    </div>
+}
+
+<!-- Bootstrap Modal for Editing -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Edit">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Listing</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="EditedListing.ListingId" id="editListingId" />
+                    <label for="editTitle" class="form-label">Title</label>
+                    <input type="text" class="form-control" name="EditedListing.Title" id="editTitle" required />
+
+                    <label for="editDescription" class="form-label mt-2">Description</label>
+                    <textarea class="form-control" name="EditedListing.Description" id="editDescription" required></textarea>
+
+                    <label for="editCategory" class="form-label mt-2">Category</label>
+                    <select class="form-control" name="EditedListing.CategoryId" id="editCategory" required>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category.CategoryId">@category.Name</option>
+                        }
+                    </select>
+
+                    <label for="editLocation" class="form-label mt-2">Location</label>
+                    <select class="form-control" name="EditedListing.LocationId" id="editLocation" required>
+                        @foreach (var location in Model.Locations)
+                        {
+                            <option value="@location.LocationId">@location.Name</option>
+                        }
+                    </select>
+
+
+
+                    <label for="editEventDate" class="form-label mt-2">Event Date</label>
+                    <input type="date" class="form-control" name="EditedListing.EventDate" id="editEventDate" />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let pendingEditData = null;
+
+    function openEditModal(id, title, description, categoryId, locationId, eventDate) {
+        // Save data temporarily
+        pendingEditData = { id, title, description, categoryId, locationId, eventDate };
+
+        // Trigger modal (Bootstrap handles this already with your data-bs-target)
+    }
+
+    // When modal is shown, populate fields
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('editModal');
+        modal.addEventListener('shown.bs.modal', function () {
+            if (!pendingEditData) return;
+
+            document.getElementById('editListingId').value = pendingEditData.id;
+            document.getElementById('editTitle').value = pendingEditData.title;
+            document.getElementById('editDescription').value = pendingEditData.description;
+            document.getElementById('editCategory').value = pendingEditData.categoryId;
+            document.getElementById('editLocation').value = pendingEditData.locationId;
+            document.getElementById('editEventDate').value = pendingEditData.eventDate;
+
+            console.log("Editing listing:");
+            console.log("ListingId:", pendingEditData.id);
+            console.log("CategoryId:", pendingEditData.categoryId);
+            console.log("LocationId:", pendingEditData.locationId);
+        });
+    });
+</script>
+}
+

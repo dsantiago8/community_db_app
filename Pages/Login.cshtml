@@ -1,17 +1,28 @@
 @page
-@model community_db.Pages.LoginModel
+@model LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
 
-<h2>Log In</h2>
+<h1>Login</h1>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">
+        @Model.ErrorMessage
+    </div>
+}
 
 <form method="post">
-    <input asp-for="Email" placeholder="Email" required />
-    <button type="submit">Login</button>
+    <div class="mb-3">
+        <label for="Email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="Email" name="Email" asp-for="Email" required />
+    </div>
 
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <p style="color:red">@Model.ErrorMessage</p>
-    }
+    <div class="mb-3">
+        <label for="Password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="Password" name="Password" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
 </form>
-
-
-

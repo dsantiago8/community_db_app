@@ -21,11 +21,11 @@ public class ListingsModel : PageModel
     [BindProperty]
     public Listing NewListing { get; set; }
 
-    public void OnGet(string? userEmail, int? categoryId, int? locationId, string? title)
+    public void OnGet(string? userEmail, int? categoryId, int? locationId, string? title, DateTime? eventDate)
     {
         Categories = _listingService.GetAllCategories();
         Locations = _listingService.GetAllLocations();
-        Listings = _listingService.SearchListings(userEmail, categoryId, locationId, title);
+        Listings = _listingService.SearchListings(userEmail, categoryId, locationId, title, eventDate);
 
         foreach (var listing in Listings)
         {
@@ -70,6 +70,21 @@ public class ListingsModel : PageModel
 
         _listingService.UnjoinListing(id, userId.Value);
         return RedirectToPage(); // refresh
+    }
+    public IActionResult OnPostEdit(int ListingId, string Title, string Description, DateTime? EventDate)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToPage("/Login");
+
+        var listing = _listingService.GetListingById(ListingId);
+        if (listing == null || listing.CreatorId != userId) return RedirectToPage();
+
+        listing.Title = Title;
+        listing.Description = Description;
+        listing.EventDate = EventDate;
+
+        _listingService.UpdateListing(listing);
+        return RedirectToPage(); // Refresh the page
     }
 
 }
