@@ -19,6 +19,9 @@ namespace community_db.Models
         public int CreatorId { get; set; }
         public DateTime DatePosted { get; set; }
         public DateTime? EventDate { get; set; }
+        public bool SavedByUser { get; set; } = false;
+        public int ViewCount { get; set; }
+
 
 
         // Optional navigation propertiesSS

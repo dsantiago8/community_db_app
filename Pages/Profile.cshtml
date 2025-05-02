@@ -33,3 +33,31 @@
 <form method="post" asp-page-handler="Logout">
     <button type="submit" class="btn btn-danger mt-3">Logout</button>
 </form>
+
+
+<h3 class="mt-4">Saved Listings</h3>
+
+@if (Model.SavedListings.Count == 0)
+{
+    <p>You haven't saved any listings yet.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var listing in Model.SavedListings)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <a asp-page="/ListingDetails" asp-route-id="@listing.ListingId">@listing.Title</a>
+                    <br />
+                    <small class="text-muted">
+                        @listing.CategoryName • @listing.LocationName • Posted @listing.DatePosted.ToShortDateString()
+                    </small>
+                </div>
+                <form method="post" asp-page-handler="Unsave" asp-route-id="@listing.ListingId" class="ms-3">
+                    <button class="btn btn-sm btn-outline-danger">Unsave</button>
+                </form>
+            </li>
+        }
+    </ul>
+}

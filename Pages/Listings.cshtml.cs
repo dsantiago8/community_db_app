@@ -23,9 +23,10 @@ public class ListingsModel : PageModel
 
     public void OnGet(string? userEmail, int? categoryId, int? locationId, string? title, DateTime? eventDate)
     {
+        var userId = HttpContext.Session.GetInt32("UserId");
         Categories = _listingService.GetAllCategories();
         Locations = _listingService.GetAllLocations();
-        Listings = _listingService.SearchListings(userEmail, categoryId, locationId, title, eventDate);
+        Listings = _listingService.SearchListings(userEmail, categoryId, locationId, title, eventDate, userId);
 
         foreach (var listing in Listings)
         {
@@ -85,6 +86,23 @@ public class ListingsModel : PageModel
 
         _listingService.UpdateListing(listing);
         return RedirectToPage(); // Refresh the page
+    }
+    public IActionResult OnPostSave(int id)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToPage("/Login");
+
+        _listingService.SaveListing(userId.Value, id);
+        return RedirectToPage(); // Refresh
+    }
+
+    public IActionResult OnPostUnsave(int id)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return RedirectToPage("/Login");
+
+        _listingService.UnsaveListing(userId.Value, id);
+        return RedirectToPage(); // Refresh
     }
 
 }

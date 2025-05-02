@@ -14,6 +14,9 @@ builder.Configuration.AddEnvironmentVariables();
 //  Add ADO.NET service (if using something like ListingService)
 builder.Services.AddTransient<ListingService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CommentService>();
+builder.Services.AddScoped<MessageService>();
+
 
 // Add Razor Pages
 builder.Services.AddRazorPages();

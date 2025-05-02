@@ -22,8 +22,16 @@ build_property._RazorSourceGeneratorDebug =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXJyb3IuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/diego/Downloads/community_db/Pages/Inbox.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5ib3guY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/diego/Downloads/community_db/Pages/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/diego/Downloads/community_db/Pages/ListingDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGlzdGluZ0RldGFpbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/diego/Downloads/community_db/Pages/Listings.cshtml]

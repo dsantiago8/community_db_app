@@ -1,0 +1,52 @@
+@page
+@model community_db.Pages.InboxModel
+@{
+    ViewData["Title"] = "Inbox";
+}
+
+<h1>Inbox</h1>
+
+@if (TempData["ReplySuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["ReplySuccess"]</div>
+}
+@if (TempData["DeleteSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["DeleteSuccess"]</div>
+}
+
+
+@if (Model.Messages.Count == 0)
+{
+    <p>You have no messages.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var message in Model.Messages)
+        {
+            <li class="list-group-item">
+                <strong>From:</strong> @message.SenderEmail <br />
+                <strong>Listing:</strong>
+                <a asp-page="/ListingDetails" asp-route-id="@message.ListingId">
+                    @message.ListingTitle
+                </a> <br />
+                <small class="text-muted">@message.SentAt.ToString("g")</small>
+                <p>@message.Content</p>
+
+                <form method="post" asp-page-handler="Delete" asp-route-id="@message.MessageId" class="d-inline me-2">
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                </form>
+
+                <form method="post" asp-page-handler="Reply" asp-route-id="@message.MessageId">
+                    <input type="hidden" name="senderId" value="@message.SenderId" />
+                    <input type="hidden" name="listingId" value="@message.ListingId" />
+                    <div class="input-group mt-2">
+                        <input name="ReplyContent" class="form-control" placeholder="Write a reply..." required />
+                        <button class="btn btn-sm btn-primary" type="submit">Reply</button>
+                    </div>
+                </form>
+            </li>
+        }
+    </ul>
+}

@@ -1,16 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Npgsql;
+using community_db.Models;
+using community_db.Services;
+
 
 namespace community_db.Pages
 {
     public class ProfileModel : PageModel
     {
         private readonly IConfiguration _config;
+        private readonly ListingService _listingService;
 
-        public ProfileModel(IConfiguration config)
+        public ProfileModel(IConfiguration config, ListingService listingService)
         {
             _config = config;
+            _listingService = listingService;
         }
 
         [BindProperty]
@@ -21,6 +26,8 @@ namespace community_db.Pages
 
         public string? SuccessMessage { get; set; }
         public string? ErrorMessage { get; set; }
+        public List<Listing> SavedListings { get; set; } = new();
+
 
         public void OnGet()
         {
@@ -43,6 +50,10 @@ namespace community_db.Pages
                 Name = reader.GetString(0);
                 Email = reader.GetString(1);
             }
+            
+            conn.Close(); // close manually before 
+            // Get saved listings
+            SavedListings = _listingService.GetSavedListings(userId.Value);
         }
 
         public IActionResult OnPost()
@@ -81,6 +92,15 @@ namespace community_db.Pages
         {
             HttpContext.Session.Clear();
             return RedirectToPage("/Login");
+        }
+
+        public IActionResult OnPostUnsave(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToPage("/Login");
+
+            _listingService.UnsaveListing(userId.Value, id);
+            return RedirectToPage(); // Refresh the profile
         }
 
     }

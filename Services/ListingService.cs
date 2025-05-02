@@ -12,7 +12,7 @@ namespace community_db.Services
             _connectionString = config.GetConnectionString("DefaultConnection");
         }
 
-        public List<Listing> SearchListings(string? userEmail, int? categoryId, int? locationId,string? title, DateTime? eventDate)
+        public List<Listing> SearchListings(string? userEmail, int? categoryId, int? locationId,string? title, DateTime? eventDate, int? currentUserId = null)
         {
             var listings = new List<Listing>();
 
@@ -23,11 +23,14 @@ namespace community_db.Services
                 SELECT l.ListingId, l.Title, l.Description, l.DatePosted, l.EventDate,
                     c.Name AS CategoryName,
                     loc.Name AS LocationName,
-                    u.Email AS CreatorEmail
+                    u.Email AS CreatorEmail,
+                    l.ViewCount,
+                    CASE WHEN s.UserId IS NULL THEN FALSE ELSE TRUE END AS SavedByUser
                 FROM Listings l
                 JOIN Categories c ON l.CategoryId = c.CategoryId
                 JOIN Locations loc ON l.LocationId = loc.LocationId
                 JOIN Users u ON l.CreatorId = u.UserId
+                LEFT JOIN SavedListings s ON s.ListingId = l.ListingId AND s.UserId = @currentUserId
                 WHERE (u.Email ILIKE @UserEmail OR @UserEmail IS NULL)
                 AND (@CategoryId IS NULL OR l.CategoryId = @CategoryId)
                 AND (@LocationId IS NULL OR l.LocationId = @LocationId)
@@ -60,6 +63,10 @@ namespace community_db.Services
                 NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Date
             });
 
+            cmd.Parameters.Add(new NpgsqlParameter("@CurrentUserId", currentUserId.HasValue ? currentUserId.Value : DBNull.Value)
+            {
+                NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Integer
+            });
 
 
 
@@ -76,7 +83,10 @@ namespace community_db.Services
                     EventDate = reader.IsDBNull(4) ? null : reader.GetDateTime(4),
                     CategoryName = reader.GetString(5),
                     LocationName = reader.GetString(6),
-                    CreatorEmail = reader.GetString(7)
+                    CreatorEmail = reader.GetString(7),
+                    ViewCount = reader.GetInt32(8),
+                    SavedByUser = reader.GetBoolean(9)
+
                 });
             }
 
@@ -224,7 +234,8 @@ namespace community_db.Services
                     l.CategoryId, l.LocationId,
                     c.Name AS CategoryName,
                     loc.Name AS LocationName,
-                    u.Email AS CreatorEmail
+                    u.Email AS CreatorEmail,
+                    l.ViewCount
                 FROM Listings l
                 JOIN Categories c ON l.CategoryId = c.CategoryId
                 JOIN Locations loc ON l.LocationId = loc.LocationId
@@ -249,7 +260,8 @@ namespace community_db.Services
                     LocationId = reader.GetInt32(6), 
                     CategoryName = reader.GetString(7),
                     LocationName = reader.GetString(8),
-                    CreatorEmail = reader.GetString(9)
+                    CreatorEmail = reader.GetString(9),
+                    ViewCount = reader.GetInt32(10)
                 });
             }
 
@@ -262,7 +274,7 @@ namespace community_db.Services
             conn.Open();
 
             var cmd = new NpgsqlCommand(@"
-                SELECT ListingId, Title, Description, CategoryId, LocationId, CreatorId, DatePosted, EventDate
+                SELECT ListingId, Title, Description, CategoryId, LocationId, CreatorId, DatePosted, EventDate, ViewCount
                 FROM Listings
                 WHERE ListingId = @ListingId
             ", conn);
@@ -280,7 +292,9 @@ namespace community_db.Services
                     LocationId = reader.GetInt32(4),
                     CreatorId = reader.GetInt32(5),
                     DatePosted = reader.GetDateTime(6),
-                    EventDate = reader.IsDBNull(7) ? null : reader.GetDateTime(7)
+                    EventDate = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
+                    ViewCount = reader.GetInt32(8)
+
                 };
             }
 
@@ -308,6 +322,72 @@ namespace community_db.Services
             cmd.Parameters.AddWithValue("@ListingId", listing.ListingId);
             cmd.Parameters.AddWithValue("@EventDate", listing.EventDate ?? (object)DBNull.Value);
 
+            cmd.ExecuteNonQuery();
+        }
+        public void SaveListing(int userId, int listingId)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("INSERT INTO SavedListings (UserId, ListingId) VALUES (@userId, @listingId) ON CONFLICT DO NOTHING", conn);
+            cmd.Parameters.AddWithValue("userId", userId);
+            cmd.Parameters.AddWithValue("listingId", listingId);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void UnsaveListing(int userId, int listingId)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("DELETE FROM SavedListings WHERE UserId = @userId AND ListingId = @listingId", conn);
+            cmd.Parameters.AddWithValue("userId", userId);
+            cmd.Parameters.AddWithValue("listingId", listingId);
+            cmd.ExecuteNonQuery();
+        }
+
+        public List<Listing> GetSavedListings(int userId)
+        {
+            var saved = new List<Listing>();
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                SELECT l.ListingId, l.Title, l.Description, l.EventDate, l.DatePosted, c.Name AS CategoryName, lo.Name AS LocationName, l.ViewCount
+                FROM SavedListings s
+                JOIN Listings l ON l.ListingId = s.ListingId
+                JOIN Categories c ON l.CategoryId = c.CategoryId
+                JOIN Locations lo ON l.LocationId = lo.LocationId
+                WHERE s.UserId = @userId", conn);
+            cmd.Parameters.AddWithValue("userId", userId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                saved.Add(new Listing
+                {
+                    ListingId = reader.GetInt32(0),
+                    Title = reader.GetString(1),
+                    Description = reader.GetString(2),
+                    EventDate = reader.IsDBNull(3) ? null : reader.GetDateTime(3),
+                    DatePosted = reader.GetDateTime(4),
+                    CategoryName = reader.GetString(5),
+                    LocationName = reader.GetString(6),
+                    ViewCount = reader.GetInt32(7)
+                });
+            }
+
+            return saved;
+        }
+        public void IncrementViewCount(int listingId)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(
+                "UPDATE Listings SET ViewCount = ViewCount + 1 WHERE ListingId = @id", conn);
+            cmd.Parameters.AddWithValue("id", listingId);
             cmd.ExecuteNonQuery();
         }
 

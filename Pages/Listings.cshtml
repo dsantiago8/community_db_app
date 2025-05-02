@@ -16,6 +16,8 @@
 
 <h1>Community Listings</h1>
 
+<h2>New Listing</h2>
+
 @* Listing Form *@
 <form method="post">
     @Html.AntiForgeryToken()
@@ -88,7 +90,11 @@
 @foreach (var item in Model.Listings)
 {
     <div>
-        <h3>@item.Title (@item.CategoryName)</h3>
+        <h3>
+            <a asp-page="/ListingDetails" asp-route-id="@item.ListingId">
+                @item.Title (@item.CategoryName)
+            </a>
+        </h3>
         <p>@item.Description</p>
         <p><em>@item.LocationName</em> • Date Posted: @item.DatePosted.ToShortDateString()</p>
         <p><strong>Posted by:</strong> @item.CreatorEmail</p>
@@ -103,6 +109,13 @@
                 @Html.AntiForgeryToken()
                 <button class="btn btn-sm @(alreadyJoined ? "btn-danger" : "btn-success")">
                     @(alreadyJoined ? "Leave" : "Join")
+                </button>
+            </form>
+
+            <form method="post" asp-page-handler="@(item.SavedByUser ? "Unsave" : "Save")" asp-route-id="@item.ListingId">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-sm @(item.SavedByUser ? "btn-warning" : "btn-outline-warning")">
+                    @(item.SavedByUser ? "Unsave" : "Save")
                 </button>
             </form>
         }
