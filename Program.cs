@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 // using community_db.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Load environment variables (like Railway env vars)
 builder.Configuration.AddEnvironmentVariables();
