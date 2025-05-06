@@ -56,7 +56,8 @@ public class MyListingsModel : PageModel
 
         if (userId == null)
         {
-            return Unauthorized(); // or redirect with error message
+            TempData["Error"] = "You must be logged in to delete a listing.";
+            return RedirectToPage("/Login");
         }
 
         // Step 2: Delete the listing
@@ -71,7 +72,7 @@ public class MyListingsModel : PageModel
             return NotFound(); // listing doesn't exist or not owned by this user
         }
 
-        return RedirectToPage("/Listings");
+        return RedirectToPage("/MyListings");
     }
 
 
