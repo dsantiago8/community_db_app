@@ -45,7 +45,7 @@ public class MyListingsModel : PageModel
         using var conn = new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
         conn.Open();
 
-        var cmd = new NpgsqlCommand("DELETE FROM listings WHERE listingid = @id AND useremail = @user", conn);
+        var cmd = new NpgsqlCommand("DELETE FROM listings WHERE listingid = @id AND creatorid = @user", conn);
         cmd.Parameters.AddWithValue("id", id);
         cmd.Parameters.AddWithValue("user", User.Identity?.Name ?? "");
 
