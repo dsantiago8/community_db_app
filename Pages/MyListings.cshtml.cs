@@ -71,7 +71,7 @@ public class MyListingsModel : PageModel
             return NotFound(); // listing doesn't exist or not owned by this user
         }
 
-        return RedirectToPage("/MyListings");
+        return RedirectToPage("/Listings");
     }
 
 
