@@ -45,18 +45,34 @@ public class MyListingsModel : PageModel
         using var conn = new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
         conn.Open();
 
-        var cmd = new NpgsqlCommand("DELETE FROM listings WHERE listingid = @id AND creatorid = @user", conn);
-        cmd.Parameters.AddWithValue("id", id);
-        cmd.Parameters.AddWithValue("user", User.Identity?.Name ?? "");
+        // Step 1: Get userid from email
+        int? userId = null;
+        using (var getUserCmd = new NpgsqlCommand("SELECT userid FROM users WHERE email = @Email", conn))
+        {
+            getUserCmd.Parameters.AddWithValue("Email", User.Identity?.Name ?? "");
+            var result = getUserCmd.ExecuteScalar();
+            userId = result != null ? (int?)result : null;
+        }
 
-        int rowsAffected = cmd.ExecuteNonQuery();
+        if (userId == null)
+        {
+            return Unauthorized(); // or redirect with error message
+        }
+
+        // Step 2: Delete the listing
+        using var deleteCmd = new NpgsqlCommand("DELETE FROM listings WHERE listingid = @id AND creatorid = @userId", conn);
+        deleteCmd.Parameters.AddWithValue("id", id);
+        deleteCmd.Parameters.AddWithValue("userId", userId.Value);
+
+        int rowsAffected = deleteCmd.ExecuteNonQuery();
 
         if (rowsAffected == 0)
         {
-            TempData["Error"] = "You are not authorized to delete this listing or it doesn't exist.";
+            return NotFound(); // listing doesn't exist or not owned by this user
         }
 
-        return RedirectToPage();
+        return RedirectToPage("/MyListings");
     }
+
 
 }
