@@ -42,25 +42,16 @@ public class MyListingsModel : PageModel
     }
     public IActionResult OnPostDelete(int id)
     {
-        using var conn = new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
-        conn.Open();
-
-        // Step 1: Get userid from email
-        int? userId = null;
-        using (var getUserCmd = new NpgsqlCommand("SELECT userid FROM users WHERE email = @Email", conn))
-        {
-            getUserCmd.Parameters.AddWithValue("Email", User.Identity?.Name ?? "");
-            var result = getUserCmd.ExecuteScalar();
-            userId = result != null ? (int?)result : null;
-        }
-
+        var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null)
         {
             TempData["Error"] = "You must be logged in to delete a listing.";
             return RedirectToPage("/Login");
         }
 
-        // Step 2: Delete the listing
+        using var conn = new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
+        conn.Open();
+
         using var deleteCmd = new NpgsqlCommand("DELETE FROM listings WHERE listingid = @id AND creatorid = @userId", conn);
         deleteCmd.Parameters.AddWithValue("id", id);
         deleteCmd.Parameters.AddWithValue("userId", userId.Value);
@@ -69,11 +60,12 @@ public class MyListingsModel : PageModel
 
         if (rowsAffected == 0)
         {
-            return NotFound(); // listing doesn't exist or not owned by this user
+            return NotFound();
         }
 
         return RedirectToPage("/MyListings");
     }
+
 
 
 }
