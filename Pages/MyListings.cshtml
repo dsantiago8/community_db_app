@@ -18,6 +18,10 @@
                 onclick="openEditModal(@listing.ListingId, '@listing.Title', `@listing.Description`, '@listing.CategoryId', '@listing.LocationId', '@(listing.EventDate?.ToString("yyyy-MM-dd") ?? "")')" data-bs-toggle="modal" data-bs-target="#editModal">
             Edit
         </button>
+        <form method="post" asp-page-handler="Delete" asp-route-id="@listing.ListingId" onsubmit="return confirm('Are you sure you want to delete this listing?');">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+
     </div>
 }
 
